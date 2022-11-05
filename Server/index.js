@@ -1,9 +1,14 @@
 const express = require('express');
+const colour = require('colour')
 const app = express();
 const cors = require('cors');
 const dotenv = require('dotenv');
 
 dotenv.config();
+
+
+const dbService = require('./dbService');
+const { response } = require('express');
 
 
 app.use(cors());
@@ -14,28 +19,66 @@ app.use(express.urlencoded({ extended: false }))
 //create
 
 app.post('/insert', (req, res) => {
+    const { name } = req.body;
+    const db = dbService.getDbServiceInstance();
+    const result = db.insertNewName(name)
+    result
+        .then(data => response.json({ success: true }))
+        .catch(err => console.log(err));
 
 })
-
 // read
-app.get('/getAll', (req, res) => {
-    // res.send("<h2>hello World its me,shad....</h2 > ")
-    res.json({
-        success: true
-    })
+app.get('/getAll', (request, response) => {
+    const db = dbService.getDbServiceInstance();
+
+    const result = db.getAllData();
+
+    result
+        .then(data => response.json({ data: data }))
+        .catch(err => console.log(err));
 })
 
-//update
 
 
+// update
+app.patch('/update', (request, response) => {
+    const { id, name } = request.body;
+    const db = dbService.getDbServiceInstance();
+
+    const result = db.updateNameById(id, name);
+
+    result
+        .then(data => response.json({ success: data }))
+        .catch(err => console.log(err));
+});
 
 
-//delete
+// delete
+app.delete('/delete/:id', (request, response) => {
+    const { id } = request.params;
+    const db = dbService.getDbServiceInstance();
 
+    const result = db.deleteRowById(id);
+
+    result
+        .then(data => response.json({ success: data }))
+        .catch(err => console.log(err));
+});
+
+app.get('/search/:name', (request, response) => {
+    const { name } = request.params;
+    const db = dbService.getDbServiceInstance();
+
+    const result = db.searchByName(name);
+
+    result
+        .then(data => response.json({ data: data }))
+        .catch(err => console.log(err));
+})
 
 
 const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () => {
-    console.log(`server is running PORT: ${PORT}`);
+    console.log(`server is running PORT: ${PORT}`.rainbow);
 });
